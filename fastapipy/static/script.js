@@ -22,6 +22,7 @@ async function uploadCSV() {
 async function loadData() {
     try {
         const response = await axios.get('/data');
+        console.log('Received data from server:', response.data);
         const { columns, data } = response.data;
         const thead = document.querySelector('#dataTable thead');
         const tbody = document.querySelector('#dataTable tbody');
@@ -34,10 +35,11 @@ async function loadData() {
         data.forEach(row => {
             const tr = document.createElement('tr');
             tr.innerHTML = columns.map((col, index) => 
-                `<td><input type="text" value="${escapeHtml(row[index])}" data-id="${escapeHtml(row[0])}" data-field="${escapeHtml(col)}"></td>`
+                `<td><input type="text" value="${escapeHtml(row[index])}" data-id="${escapeHtml(row[0])}" data-field="${escapeHtml(col)}" id="input-${escapeHtml(row[0])}-${escapeHtml(col)}"></td>`
             ).join('') + `<td><button onclick="updateRow('${escapeHtml(row[0])}')">Update</button></td>`;
             tbody.appendChild(tr);
         });
+        console.log('Table updated with new data');
     } catch (error) {
         console.error('Error loading data:', error);
         alert('Error loading data');
@@ -56,20 +58,32 @@ function escapeHtml(unsafe) {
 
 // Update the updateRow function to handle string IDs
 async function updateRow(id) {
-    const inputs = document.querySelectorAll(`input[data-id="${escapeHtml(id)}"]`);
+    console.log('Updating row with id:', id);
     const formData = new FormData();
     formData.append('id', id);
     
-    inputs.forEach(input => {
-        formData.append(input.dataset.field, input.value);
+    const updatedData = {};
+    const columns = document.querySelectorAll('#dataTable thead th');
+    columns.forEach(column => {
+        if (column.textContent !== 'Action') {
+            const inputField = document.getElementById(`input-${escapeHtml(id)}-${escapeHtml(column.textContent)}`);
+            if (inputField) {
+                const field = inputField.dataset.field;
+                const value = inputField.value;
+                console.log(`Field: ${field}, Value: ${value}`);
+                formData.append(field, value);
+                updatedData[field] = value;
+            }
+        }
     });
 
-    console.log('Sending data:', Object.fromEntries(formData));
+    console.log('Sending data:', updatedData);
 
     try {
         const response = await axios.post('/update', formData);
+        console.log('Server response:', response.data);
         alert(response.data.message);
-        loadData();
+        await loadData();
     } catch (error) {
         console.error('Error updating data:', error.response?.data || error.message);
         alert('Error updating data');

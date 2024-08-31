@@ -1,7 +1,8 @@
 import csv
 import sqlite3
 
-from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi import FastAPI, File, Request, UploadFile
+from fastapi.exceptions import HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from logger import get_logger
@@ -75,19 +76,52 @@ async def get_data():
     data = cursor.fetchall()
 
     conn.close()
-    logger.info("Columns: %r, Data: %r", columns, data[0])
+    logger.debug("Columns: %r, Data: %r", columns, data[0])
     return {"columns": columns, "data": data}
 
 
 @app.post("/update")
-async def update_data(
-    id: int = Form(...), name: str = Form(...), value: str = Form(...)
-):
+async def update_data(request: Request):
+    form_data = await request.form()
+    logger.info("Received form data: %r", form_data)
+
+    id = form_data.get("id")
+    if not id:
+        raise HTTPException(status_code=400, detail="ID is required")
+
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE data SET name = ?, value = ? WHERE id = ?", (name, value, id)
-    )
-    conn.commit()
-    conn.close()
-    return {"message": "Data updated successfully"}
+
+    # Get column names
+    cursor.execute("PRAGMA table_info(data)")
+    valid_columns = set(column[1] for column in cursor.fetchall())
+
+    # Prepare the update query
+    update_columns = []
+    update_values = []
+    for key, value in form_data.items():
+        if key != "id" and key in valid_columns:
+            update_columns.append(f"{key} = ?")
+            update_values.append(value)
+        elif key != "id":
+            logger.warning("Ignoring invalid column: %r", key)
+
+    if not update_columns:
+        raise HTTPException(status_code=400, detail="No valid columns to update")
+
+    update_query = f"UPDATE data SET {', '.join(update_columns)} WHERE id = ?"
+    update_values.append(id)
+
+    logger.debug("Update query: %r", update_query)
+    logger.debug("Update values: %r", update_values)
+
+    try:
+        cursor.execute(update_query, update_values)
+        conn.commit()
+        logger.info("Updated row with id: %r", id)
+        return {"message": "Data updated successfully"}
+    except sqlite3.Error as e:
+        logger.error("Error updating data: %r", e)
+        raise HTTPException(status_code=500, detail="Error updating data") from e
+    finally:
+        conn.close()
