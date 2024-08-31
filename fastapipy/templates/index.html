@@ -3,24 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload and update date</title>
+    <title>Look at Your Data</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="{{ url_for('static', path='script.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
 <body>
-    <h1>Upload and update date</h1>
-    
-    <h2>Upload CSV</h2>
-    <input type="file" id="csvFile" accept=".csv">
-    <button onclick="uploadCSV()">Upload</button>
-    
-    <h2>Database Contents</h2>
-    <div class="table-container">
-        <table id="dataTable">
-            <thead></thead>
-            <tbody></tbody>
-        </table>
+    <div class="container">
+        <h1>Look at Your Data</h1>
+        
+        <h2>Upload CSV</h2>
+        <input type="file" id="csvFile" accept=".csv">
+        <button onclick="uploadCSV()">Upload</button>
+        
+        <h2>Database Contents</h2>
+        <div class="table-container">
+            <table id="dataTable">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>

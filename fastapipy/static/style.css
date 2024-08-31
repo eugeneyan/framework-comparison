@@ -1,8 +1,14 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 100%;
+    max-width: none;
+    padding: 0 2em;
+    box-sizing: border-box;
 }
 
 table {
@@ -17,11 +23,13 @@ th, td {
     text-align: left;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    max-width: 200px; /* Adjust this value as needed */
 }
 
 th {
     background-color: #f2f2f2;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 input[type="file"], button {
@@ -52,7 +60,7 @@ textarea {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
-    resize: vertical;
+    resize: both;
     border: none;
     background: transparent;
     font-family: inherit;
