@@ -1,8 +1,10 @@
 import csv
+import io
 import sqlite3
 
 from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.exceptions import HTTPException
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from logger import get_logger
@@ -149,3 +151,31 @@ async def delete_data(request: Request):
         raise HTTPException(status_code=500, detail="Error deleting data") from e
     finally:
         conn.close()
+
+
+@app.get("/download")
+async def download_csv():
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    # Get column names
+    cursor.execute("PRAGMA table_info(data)")
+    columns = [column[1] for column in cursor.fetchall()]
+
+    # Get data
+    cursor.execute("SELECT * FROM data")
+    data = cursor.fetchall()
+
+    conn.close()
+
+    # Create CSV string
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(columns)
+    writer.writerows(data)
+
+    # Create a streaming response
+    response = StreamingResponse(iter([output.getvalue()]), media_type="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=database_export.csv"
+
+    return response

@@ -154,4 +154,22 @@ async function deleteRow(button) {
     }
 }
 
+async function downloadCSV() {
+    try {
+        const response = await axios.get('/download', { responseType: 'blob' });
+        const blob = new Blob([response.data], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'database_export.csv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error downloading CSV:', error);
+        alert('Error downloading CSV');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', loadData);
