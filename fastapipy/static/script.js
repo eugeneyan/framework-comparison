@@ -27,15 +27,15 @@ async function loadData() {
         const tbody = document.querySelector('#dataTable tbody');
         
         // Update table header
-        thead.innerHTML = '<tr>' + columns.map(col => `<th>${col}</th>`).join('') + '<th>Action</th></tr>';
+        thead.innerHTML = '<tr>' + columns.map(col => `<th>${escapeHtml(col)}</th>`).join('') + '<th>Action</th></tr>';
         
         // Update table body
         tbody.innerHTML = '';
         data.forEach(row => {
             const tr = document.createElement('tr');
             tr.innerHTML = columns.map((col, index) => 
-                `<td><input type="text" value="${row[index]}" data-id="${row[0]}" data-field="${col}"></td>`
-            ).join('') + `<td><button onclick="updateRow(${row[0]})">Update</button></td>`;
+                `<td><input type="text" value="${escapeHtml(row[index])}" data-id="${escapeHtml(row[0])}" data-field="${escapeHtml(col)}"></td>`
+            ).join('') + `<td><button onclick="updateRow('${escapeHtml(row[0])}')">Update</button></td>`;
             tbody.appendChild(tr);
         });
     } catch (error) {
@@ -44,8 +44,19 @@ async function loadData() {
     }
 }
 
+// Helper function to escape HTML special characters
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Update the updateRow function to handle string IDs
 async function updateRow(id) {
-    const inputs = document.querySelectorAll(`input[data-id="${id}"]`);
+    const inputs = document.querySelectorAll(`input[data-id="${escapeHtml(id)}"]`);
     const formData = new FormData();
     formData.append('id', id);
     
