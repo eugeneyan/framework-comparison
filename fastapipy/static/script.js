@@ -1,4 +1,4 @@
-let DEBUG = false;
+let DEBUG = true;
 
 // Custom debug logging function
 function debugLog(...args) {
@@ -44,7 +44,7 @@ async function loadData() {
         data.forEach(row => {
             const tr = document.createElement('tr');
             tr.innerHTML = columns.map((col, index) => 
-                `<td><input type="text" value="${escapeHtml(row[index])}" data-id="${escapeHtml(row[0])}" data-field="${escapeHtml(col)}"></td>`
+                `<td><textarea rows="3" data-id="${escapeHtml(row[0])}" data-field="${escapeHtml(col)}">${escapeHtml(row[index])}</textarea></td>`
             ).join('') + `<td><button onclick="updateRow(this)" data-id="${escapeHtml(row[0])}">Update</button></td>`;
             tbody.appendChild(tr);
         });
@@ -74,10 +74,10 @@ async function updateRow(button) {
     
     const updatedData = {};
     const row = button.closest('tr');
-    const inputs = row.querySelectorAll('input');
-    inputs.forEach(input => {
-        const field = input.getAttribute('data-field');
-        const value = input.value;
+    const textareas = row.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        const field = textarea.getAttribute('data-field');
+        const value = textarea.value;
         console.log(`Field: ${field}, Value: ${value}`);
         formData.append(field, value);
         updatedData[field] = value;
