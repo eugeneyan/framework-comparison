@@ -6,7 +6,12 @@ My current approach of building apps is based on fastapi + jinja/html + css + so
 
 Recently, I've been thinking about building apps in js (next.js?) and trying fastHTML, and ran a poll [here](https://x.com/eugeneyan/status/1828447283811402006). This is an extension of the poll, where I'll build the same app thrice using all three approaches, to get a sense of what suits me best.
 
-The app will:
-- Enable users to `upload` a csv file to initialize a sqlite database
-- Enable users to `update` a row of the sqlite database
-- Enable users to `delete` a row of the sqlite database
+The app will enable users to:
+- `upload` a csv file to initialize a sqlite table
+- `update` a row of the sqlite database
+- `delete` a row of the sqlite database
+- `download` the table of the sqlite table
+
+To keep things simple for this comparison, we'll:
+- Have a single table for the data
+- Not have features for table deletes or overwrites once the single table has been initialized

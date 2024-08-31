@@ -110,7 +110,7 @@ async function updateRow(button) {
     console.log('Updating row with id:', id);
     const formData = new FormData();
     formData.append('id', id);
-    
+
     const updatedData = {};
     const row = button.closest('tr');
     const textareas = row.querySelectorAll('textarea');
