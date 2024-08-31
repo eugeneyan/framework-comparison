@@ -28,27 +28,61 @@ async function uploadCSV() {
     }
 }
 
+function getColumnClass(value) {
+    if (value.length <= 12) {
+        return 'col-narrow';
+    } else if (value.length <= 200) {
+        return 'col-medium';
+    } else {
+        return 'col-wide';
+    }
+}
+
 async function loadData() {
     try {
         const response = await axios.get('/data');
         debugLog('Received data from server:', response.data);
         const { columns, data } = response.data;
-        const thead = document.querySelector('#dataTable thead');
-        const tbody = document.querySelector('#dataTable tbody');
-        
-        // Update table header
-        thead.innerHTML = '<tr>' + columns.map(col => `<th>${escapeHtml(col)}</th>`).join('') + '<th>Action</th></tr>';
-        
-        // Update table body
+        const table = document.getElementById('dataTable');
+        const thead = table.querySelector('thead');
+        const tbody = table.querySelector('tbody');
+
+        // Clear existing content
+        thead.innerHTML = '';
         tbody.innerHTML = '';
+
+        // Create header row
+        const headerRow = document.createElement('tr');
+        columns.forEach(col => {
+            const th = document.createElement('th');
+            th.textContent = col;
+            headerRow.appendChild(th);
+        });
+        headerRow.innerHTML += '<th>Actions</th>';
+        thead.appendChild(headerRow);
+
+        // Create data rows
         data.forEach(row => {
             const tr = document.createElement('tr');
-            tr.innerHTML = columns.map((col, index) => 
-                `<td><textarea rows="3" data-id="${escapeHtml(row[0])}" data-field="${escapeHtml(col)}">${escapeHtml(row[index])}</textarea></td>`
-            ).join('') + `<td><button onclick="updateRow(this)" data-id="${escapeHtml(row[0])}">Update</button></td>`;
+            columns.forEach((col, index) => {
+                const td = document.createElement('td');
+                const textarea = document.createElement('textarea');
+                textarea.value = row[index];
+                textarea.setAttribute('data-id', row[0]);
+                textarea.setAttribute('data-field', col);
+                td.appendChild(textarea);
+                td.className = getColumnClass(row[index]);
+                tr.appendChild(td);
+            });
+            const actionTd = document.createElement('td');
+            const updateButton = document.createElement('button');
+            updateButton.textContent = 'Update';
+            updateButton.onclick = () => updateRow(updateButton);
+            updateButton.setAttribute('data-id', row[0]);
+            actionTd.appendChild(updateButton);
+            tr.appendChild(actionTd);
             tbody.appendChild(tr);
         });
-        console.log('Table updated with new data');
     } catch (error) {
         console.error('Error loading data:', error);
         alert('Error loading data');

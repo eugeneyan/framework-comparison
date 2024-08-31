@@ -16,6 +16,7 @@ th, td {
     padding: 8px;
     text-align: left;
     word-wrap: break-word;
+    overflow-wrap: break-word;
     max-width: 200px; /* Adjust this value as needed */
 }
 
@@ -25,4 +26,36 @@ th {
 
 input[type="file"], button {
     margin-top: 10px;
+}
+
+.col-narrow {
+    width: 2em;
+    max-width: 2em;
+}
+
+.col-medium {
+    width: 20%;
+    max-width: 20%;
+}
+
+.col-wide {
+    width: 70%;
+    max-width: 70%;
+}
+
+td {
+    height: 10em;
+    vertical-align: top;
+}
+
+textarea {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 0;
 }
