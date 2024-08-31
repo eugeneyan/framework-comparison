@@ -1,3 +1,12 @@
+let DEBUG = false;
+
+// Custom debug logging function
+function debugLog(...args) {
+    if (DEBUG) {
+        console.log(...args);
+    }
+}
+
 async function uploadCSV() {
     const fileInput = document.getElementById('csvFile');
     const file = fileInput.files[0];
@@ -22,7 +31,7 @@ async function uploadCSV() {
 async function loadData() {
     try {
         const response = await axios.get('/data');
-        console.log('Received data from server:', response.data);
+        debugLog('Received data from server:', response.data);
         const { columns, data } = response.data;
         const thead = document.querySelector('#dataTable thead');
         const tbody = document.querySelector('#dataTable tbody');
@@ -35,8 +44,8 @@ async function loadData() {
         data.forEach(row => {
             const tr = document.createElement('tr');
             tr.innerHTML = columns.map((col, index) => 
-                `<td><input type="text" value="${escapeHtml(row[index])}" data-id="${escapeHtml(row[0])}" data-field="${escapeHtml(col)}" id="input-${escapeHtml(row[0])}-${escapeHtml(col)}"></td>`
-            ).join('') + `<td><button onclick="updateRow('${escapeHtml(row[0])}')">Update</button></td>`;
+                `<td><input type="text" value="${escapeHtml(row[index])}" data-id="${escapeHtml(row[0])}" data-field="${escapeHtml(col)}"></td>`
+            ).join('') + `<td><button onclick="updateRow(this)" data-id="${escapeHtml(row[0])}">Update</button></td>`;
             tbody.appendChild(tr);
         });
         console.log('Table updated with new data');
@@ -56,32 +65,29 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// Update the updateRow function to handle string IDs
-async function updateRow(id) {
+// Update the updateRow function to use data-id
+async function updateRow(button) {
+    const id = button.getAttribute('data-id');
     console.log('Updating row with id:', id);
     const formData = new FormData();
     formData.append('id', id);
     
     const updatedData = {};
-    const columns = document.querySelectorAll('#dataTable thead th');
-    columns.forEach(column => {
-        if (column.textContent !== 'Action') {
-            const inputField = document.getElementById(`input-${escapeHtml(id)}-${escapeHtml(column.textContent)}`);
-            if (inputField) {
-                const field = inputField.dataset.field;
-                const value = inputField.value;
-                console.log(`Field: ${field}, Value: ${value}`);
-                formData.append(field, value);
-                updatedData[field] = value;
-            }
-        }
+    const row = button.closest('tr');
+    const inputs = row.querySelectorAll('input');
+    inputs.forEach(input => {
+        const field = input.getAttribute('data-field');
+        const value = input.value;
+        console.log(`Field: ${field}, Value: ${value}`);
+        formData.append(field, value);
+        updatedData[field] = value;
     });
 
     console.log('Sending data:', updatedData);
 
     try {
         const response = await axios.post('/update', formData);
-        console.log('Server response:', response.data);
+        debugLog('Server response:', response.data);
         alert(response.data.message);
         await loadData();
     } catch (error) {
