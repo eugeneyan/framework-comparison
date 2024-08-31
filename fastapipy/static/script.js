@@ -80,6 +80,11 @@ async function loadData() {
             updateButton.onclick = () => updateRow(updateButton);
             updateButton.setAttribute('data-id', row[0]);
             actionTd.appendChild(updateButton);
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => deleteRow(deleteButton);
+            deleteButton.setAttribute('data-id', row[0]);
+            actionTd.appendChild(deleteButton);
             tr.appendChild(actionTd);
             tbody.appendChild(tr);
         });
@@ -127,6 +132,25 @@ async function updateRow(button) {
     } catch (error) {
         console.error('Error updating data:', error.response?.data || error.message);
         alert('Error updating data');
+    }
+}
+
+async function deleteRow(button) {
+    const id = button.getAttribute('data-id');
+    console.log('Deleting row with id:', id);
+
+    if (!confirm('Are you sure you want to delete this row?')) {
+        return;
+    }
+
+    try {
+        const response = await axios.post('/delete', { id: id });
+        debugLog('Server response:', response.data);
+        alert(response.data.message);
+        await loadData();
+    } catch (error) {
+        console.error('Error deleting data:', error.response?.data || error.message);
+        alert('Error deleting data');
     }
 }
 

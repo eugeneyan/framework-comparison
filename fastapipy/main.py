@@ -125,3 +125,27 @@ async def update_data(request: Request):
         raise HTTPException(status_code=500, detail="Error updating data") from e
     finally:
         conn.close()
+
+
+@app.post("/delete")
+async def delete_data(request: Request):
+    form_data = await request.json()
+    logger.info("Received delete request: %r", form_data)
+
+    id = form_data.get("id")
+    if not id:
+        raise HTTPException(status_code=400, detail="ID is required")
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("DELETE FROM data WHERE id = ?", (id,))
+        conn.commit()
+        logger.info("Deleted row with id: %r", id)
+        return {"message": "Data deleted successfully"}
+    except sqlite3.Error as e:
+        logger.error("Error deleting data: %r", e)
+        raise HTTPException(status_code=500, detail="Error deleting data") from e
+    finally:
+        conn.close()
