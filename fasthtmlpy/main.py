@@ -22,9 +22,13 @@ init_db()
 @rt("/")
 def index():
     inp = Input(
-        type="file", name="csv_file", accept=".csv", multiple=False, required=True
+        type="file",
+        name="csv_file",
+        accept=".csv",
+        multiple=False,
+        required=True,
     )
-    upload_button = Button("Upload CSV")
+    upload_button = Button("Upload CSV", cls="btn")
     download_button = A("Download CSV", href="/download", cls="btn download-btn")
 
     add = Form(
@@ -127,13 +131,14 @@ def create_table(columns, data):
                                 hx_post=f"/update/{row[0]}",
                                 hx_include="closest tr",
                                 hx_target="closest tr",
+                                cls="btn",
                             ),
                             Button(
                                 "Delete",
                                 hx_delete=f"/delete/{row[0]}",
                                 hx_target="#data-table",
+                                cls="btn",
                             ),
-                            cls="action-buttons",
                         )
                     ]
                 )
@@ -219,15 +224,14 @@ def update(id: int, form_data: dict):
                 hx_post=f"/update/{updated_row[0]}",
                 hx_include="closest tr",
                 hx_target="closest tr",
-                cls="update-btn",
+                cls="btn",
             ),
             Button(
                 "Delete",
                 hx_delete=f"/delete/{updated_row[0]}",
                 hx_target="#data-table",
-                cls="delete-btn",
+                cls="btn",
             ),
-            cls="action-buttons",
         )
     ]
 
