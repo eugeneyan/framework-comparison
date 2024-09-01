@@ -108,7 +108,6 @@ def get_data():
     conn.close()
 
     table = Div(
-        H1("Questions"),
         Table(
             Thead(
                 Tr(*[Th(col) for col in columns]),
@@ -125,6 +124,7 @@ def get_data():
                                         name=f"{columns[i]}_{row[0]}",
                                         hx_post=f"/update/{row[0]}",
                                         hx_trigger="change",
+                                        hx_include="closest tr",
                                     )
                                 )
                                 for i in range(len(columns))
@@ -149,8 +149,8 @@ def get_data():
     return table
 
 
-@rt("/update/<int:id>", methods=["POST"])
-def update(id):
+@rt("/update/{id}", methods=["POST"])
+def update(id: int, form_data: dict):
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
@@ -158,16 +158,22 @@ def update(id):
     cursor.execute("PRAGMA table_info(data)")
     columns = [column[1] for column in cursor.fetchall()]
 
-    values = [request.form[f"{col}_{id}"] for col in columns if col != "id"]
-    update_sql = f"UPDATE data SET {', '.join([f'{col}=?' for col in columns if col != 'id'])} WHERE id=?"
-    cursor.execute(update_sql, (*values, id))
+    # Filter out the 'id' column and prepare the update data
+    update_data = {col: form_data.get(f"{col}_{id}") for col in columns if col != "id"}
+
+    # Prepare the SQL update statement
+    update_sql = f"UPDATE data SET {', '.join([f'{col}=?' for col in update_data.keys()])} WHERE id=?"
+
+    # Execute the update
+    cursor.execute(update_sql, (*update_data.values(), id))
     conn.commit()
     conn.close()
+
     return "Updated"
 
 
-@rt("/delete/<int:id>", methods=["DELETE"])
-def delete(id):
+@rt("/delete/{id}", methods=["DELETE"])
+def delete(id: int):
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     cursor.execute("DELETE FROM data WHERE id=?", (id,))
