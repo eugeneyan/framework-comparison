@@ -91,6 +91,45 @@ async def upload_csv(csv_file: UploadFile):
     return get_data()
 
 
+def create_table(columns, data):
+    return Table(
+        Thead(
+            Tr(*[Th(col) for col in columns]),
+            Tbody(
+                *[
+                    Tr(
+                        *[
+                            Td(str(row[i]))
+                            if i == 0
+                            # ID column
+                            else Td(
+                                Input(
+                                    value=str(row[i]),
+                                    name=f"{columns[i]}_{row[0]}",
+                                    hx_post=f"/update/{row[0]}",
+                                    hx_trigger="change",
+                                    hx_include="closest tr",
+                                )
+                            )
+                            for i in range(len(columns))
+                        ]
+                        + [
+                            Td(
+                                Button(
+                                    "Delete",
+                                    hx_delete=f"/delete/{row[0]}",
+                                    hx_target="#data-table",
+                                )
+                            )
+                        ]
+                    )
+                    for row in data
+                ]
+            ),
+        ),
+    )
+
+
 @rt("/data")
 def get_data():
     conn = sqlite3.connect("database.db")
@@ -107,44 +146,7 @@ def get_data():
     logger.info(f"Data: {data[0]}")
     conn.close()
 
-    table = Div(
-        Table(
-            Thead(
-                Tr(*[Th(col) for col in columns]),
-                Tbody(
-                    *[
-                        Tr(
-                            *[
-                                Td(str(row[i]))
-                                if i == 0
-                                # ID column
-                                else Td(
-                                    Input(
-                                        value=str(row[i]),
-                                        name=f"{columns[i]}_{row[0]}",
-                                        hx_post=f"/update/{row[0]}",
-                                        hx_trigger="change",
-                                        hx_include="closest tr",
-                                    )
-                                )
-                                for i in range(len(columns))
-                            ]
-                            + [
-                                Td(
-                                    Button(
-                                        "Delete",
-                                        hx_delete=f"/delete/{row[0]}",
-                                        hx_target="#data-table",
-                                    )
-                                )
-                            ]
-                        )
-                        for row in data
-                    ]
-                ),
-            ),
-        ),
-    )
+    table = create_table(columns, data)
 
     return table
 
