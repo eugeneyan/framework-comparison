@@ -1,6 +1,8 @@
 import csv
+import io
 import sqlite3
 
+from fastapi.responses import StreamingResponse
 from fasthtml.common import *
 from logger import get_logger
 
@@ -22,8 +24,11 @@ def index():
     inp = Input(
         type="file", name="csv_file", accept=".csv", multiple=False, required=True
     )
+    upload_button = Button("Upload CSV")
+    download_button = A("Download CSV", href="/download", cls="btn download-btn")
+
     add = Form(
-        Group(inp, Button("Upload")),
+        Group(inp, upload_button, download_button),
         hx_post="/upload",
         hx_target="#data-table",
         hx_swap="innerHTML",
@@ -235,6 +240,38 @@ def delete(id: int):
     conn.commit()
     conn.close()
     return get_data()
+
+
+@rt("/download")
+def download_csv():
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    # Get column names
+    cursor.execute("PRAGMA table_info(data)")
+    columns = [column[1] for column in cursor.fetchall()]
+
+    # Fetch all data
+    cursor.execute("SELECT * FROM data")
+    data = cursor.fetchall()
+
+    conn.close()
+
+    # Create a CSV string
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write header
+    writer.writerow(columns)
+
+    # Write data
+    writer.writerows(data)
+
+    # Create a StreamingResponse
+    response = StreamingResponse(iter([output.getvalue()]), media_type="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=data.csv"
+
+    return response
 
 
 serve()
