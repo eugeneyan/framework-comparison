@@ -122,13 +122,11 @@ def create_table(columns, data):
                                 hx_post=f"/update/{row[0]}",
                                 hx_include="closest tr",
                                 hx_target="closest tr",
-                                cls="update-btn",
                             ),
                             Button(
                                 "Delete",
                                 hx_delete=f"/delete/{row[0]}",
                                 hx_target="#data-table",
-                                cls="delete-btn",
                             ),
                             cls="action-buttons",
                         )
@@ -190,49 +188,43 @@ def update(id: int, form_data: dict):
     # Execute the update
     cursor.execute(update_sql, (*update_data.values(), id))
     conn.commit()
-    conn.close()
 
     # Fetch the updated row
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
     cursor.execute("SELECT * FROM data WHERE id=?", (id,))
     updated_row = cursor.fetchone()
     conn.close()
 
-    # Create and return the updated table row
-    return Tr(
-        *[
-            Td(str(updated_row[i]), cls=f"col-{getColumnClass(str(updated_row[i]))}")
-            if i == 0
-            else Td(
-                Textarea(
-                    str(updated_row[i]),
-                    name=f"{columns[i]}_{updated_row[0]}",
-                    cls=f"textarea-{getColumnClass(str(updated_row[i]))}",
-                ),
-                cls=f"col-{getColumnClass(str(updated_row[i]))}",
-            )
-            for i in range(len(columns))
-        ]
-        + [
-            Td(
-                Button(
-                    "Update",
-                    hx_post=f"/update/{updated_row[0]}",
-                    hx_include="closest tr",
-                    hx_target="closest tr",
-                    cls="update-btn",
-                ),
-                Button(
-                    "Delete",
-                    hx_delete=f"/delete/{updated_row[0]}",
-                    hx_target="#data-table",
-                    cls="delete-btn",
-                ),
-                cls="action-buttons",
-            )
-        ]
-    )
+    # Create and return the updated table row contents
+    return [
+        Td(str(updated_row[i]), cls=f"col-{getColumnClass(str(updated_row[i]))}")
+        if i == 0
+        else Td(
+            Textarea(
+                str(updated_row[i]),
+                name=f"{columns[i]}_{updated_row[0]}",
+                cls=f"textarea-{getColumnClass(str(updated_row[i]))}",
+            ),
+            cls=f"col-{getColumnClass(str(updated_row[i]))}",
+        )
+        for i in range(len(columns))
+    ] + [
+        Td(
+            Button(
+                "Update",
+                hx_post=f"/update/{updated_row[0]}",
+                hx_include="closest tr",
+                hx_target="closest tr",
+                cls="update-btn",
+            ),
+            Button(
+                "Delete",
+                hx_delete=f"/delete/{updated_row[0]}",
+                hx_target="#data-table",
+                cls="delete-btn",
+            ),
+            cls="action-buttons",
+        )
+    ]
 
 
 @rt("/delete/{id}", methods=["DELETE"])
