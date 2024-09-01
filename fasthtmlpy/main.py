@@ -2,8 +2,10 @@ import csv
 import sqlite3
 
 from fasthtml.common import *
+from logger import get_logger
 
 app, rt = fast_app()
+logger = get_logger("fasthtml", "INFO")
 
 
 # Database setup
@@ -38,15 +40,17 @@ def index():
         cursor.execute("SELECT COUNT(*) FROM data")
         row_count = cursor.fetchone()[0]
         if row_count > 0:
-            initial_table = get_data()
+            data_table = Div(get_data(), id="data-table")
         else:
-            initial_table = P("No data available. Please upload a CSV file.")
+            data_table = Div(
+                P("No data available. Please upload a CSV file."), id="data-table"
+            )
     else:
-        initial_table = P("No data available. Please upload a CSV file.")
+        data_table = Div(
+            P("No data available. Please upload a CSV file."), id="data-table"
+        )
 
     conn.close()
-
-    data_table = Div(initial_table, id="data-table")
 
     return Title("CSV Upload and Database Viewer"), Main(
         H1("CSV Upload and Database Viewer"), add, data_table, cls="container"
@@ -95,44 +99,54 @@ def get_data():
     # Get column names
     cursor.execute("PRAGMA table_info(data)")
     columns = [column[1] for column in cursor.fetchall()]
+    logger.info(f"Columns: {columns}")
 
     # Get data
     cursor.execute("SELECT * FROM data")
     data = cursor.fetchall()
-
+    logger.info(f"Data: {data[0]}")
     conn.close()
 
-    return Table(
-        Thead(Tr([Th(col) for col in columns])),
-        Tbody(
-            [
-                Tr(
-                    [
-                        Td(row[0]),  # Assuming the first column is the ID
-                        *[
-                            Td(
-                                Input(
-                                    value=row[i],
-                                    name=f"{columns[i]}_{row[0]}",
-                                    hx_post=f"/update/{row[0]}",
-                                    hx_trigger="change",
+    table = Div(
+        H1("Questions"),
+        Table(
+            Thead(
+                Tr(*[Th(col) for col in columns]),
+                Tbody(
+                    *[
+                        Tr(
+                            *[
+                                Td(str(row[i]))
+                                if i == 0
+                                # ID column
+                                else Td(
+                                    Input(
+                                        value=str(row[i]),
+                                        name=f"{columns[i]}_{row[0]}",
+                                        hx_post=f"/update/{row[0]}",
+                                        hx_trigger="change",
+                                    )
                                 )
-                            )
-                            for i in range(1, len(columns))
-                        ],
-                        Td(
-                            Button(
-                                "Delete",
-                                hx_delete=f"/delete/{row[0]}",
-                                hx_target="#data-table",
-                            )
-                        ),
+                                for i in range(len(columns))
+                            ]
+                            + [
+                                Td(
+                                    Button(
+                                        "Delete",
+                                        hx_delete=f"/delete/{row[0]}",
+                                        hx_target="#data-table",
+                                    )
+                                )
+                            ]
+                        )
+                        for row in data
                     ]
-                )
-                for row in data
-            ]
+                ),
+            ),
         ),
     )
+
+    return table
 
 
 @rt("/update/<int:id>", methods=["POST"])
