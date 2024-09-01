@@ -11,3 +11,6 @@ dependencies = [
     "python-multipart>=0.0.9",
     "uvicorn>=0.30.6",
 ]
+
+[tool.ruff.lint]
+ignore = ["F403", "F405"]
