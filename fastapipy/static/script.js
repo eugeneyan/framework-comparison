@@ -29,7 +29,7 @@ async function uploadCSV() {
 }
 
 function getColumnClass(value) {
-    if (value.length <= 12) {
+    if (value.length <= 5) {
         return 'col-narrow';
     } else if (value.length <= 200) {
         return 'col-medium';

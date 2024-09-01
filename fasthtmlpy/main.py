@@ -40,20 +40,20 @@ def index():
         cursor.execute("SELECT COUNT(*) FROM data")
         row_count = cursor.fetchone()[0]
         if row_count > 0:
-            data_table = Div(get_data(), id="data-table")
+            data_table = get_data()
         else:
-            data_table = Div(
-                P("No data available. Please upload a CSV file."), id="data-table"
-            )
+            data_table = P("No data available. Please upload a CSV file.")
     else:
-        data_table = Div(
-            P("No data available. Please upload a CSV file."), id="data-table"
-        )
+        data_table = P("No data available. Please upload a CSV file.")
 
     conn.close()
 
-    return Title("CSV Upload and Database Viewer"), Main(
-        H1("CSV Upload and Database Viewer"), add, data_table, cls="container"
+    return Title("Look at Your Data"), Main(
+        Link(rel="stylesheet", href="/static/style.css"),
+        H1("Look at Your Data"),
+        add,
+        Div(data_table, cls="table-container", style="width: 100%;"),
+        cls="container-fluid",
     )
 
 
@@ -92,42 +92,63 @@ async def upload_csv(csv_file: UploadFile):
 
 
 def create_table(columns, data):
-    return Table(
+    table = Table(
         Thead(
-            Tr(*[Th(col) for col in columns]),
-            Tbody(
-                *[
-                    Tr(
-                        *[
-                            Td(str(row[i]))
-                            if i == 0
-                            # ID column
-                            else Td(
-                                Input(
-                                    value=str(row[i]),
-                                    name=f"{columns[i]}_{row[0]}",
-                                    hx_post=f"/update/{row[0]}",
-                                    hx_trigger="change",
-                                    hx_include="closest tr",
-                                )
-                            )
-                            for i in range(len(columns))
-                        ]
-                        + [
-                            Td(
-                                Button(
-                                    "Delete",
-                                    hx_delete=f"/delete/{row[0]}",
-                                    hx_target="#data-table",
-                                )
-                            )
-                        ]
-                    )
-                    for row in data
-                ]
-            ),
+            Tr(
+                *[Th(col, cls=f"col-{getColumnClass(col)}") for col in columns]
+                + [Th("Actions")]
+            )
         ),
+        Tbody(
+            *[
+                Tr(
+                    *[
+                        Td(str(row[i]), cls=f"col-{getColumnClass(str(row[i]))}")
+                        if i == 0
+                        else Td(
+                            Textarea(
+                                str(row[i]),
+                                name=f"{columns[i]}_{row[0]}",
+                                cls=f"textarea-{getColumnClass(str(row[i]))}",
+                            ),
+                            cls=f"col-{getColumnClass(str(row[i]))}",
+                        )
+                        for i in range(len(columns))
+                    ]
+                    + [
+                        Td(
+                            Button(
+                                "Update",
+                                hx_post=f"/update/{row[0]}",
+                                hx_include="closest tr",
+                                hx_target="closest tr",
+                                cls="update-btn",
+                            ),
+                            Button(
+                                "Delete",
+                                hx_delete=f"/delete/{row[0]}",
+                                hx_target="#data-table",
+                                cls="delete-btn",
+                            ),
+                            cls="action-buttons",
+                        )
+                    ]
+                )
+                for row in data
+            ]
+        ),
+        cls="table",
     )
+    return Div(table, cls="table-container")
+
+
+def getColumnClass(value):
+    if len(value) <= 5:
+        return "narrow"
+    elif len(value) <= 200:
+        return "medium"
+    else:
+        return "wide"
 
 
 @rt("/data")
@@ -171,7 +192,47 @@ def update(id: int, form_data: dict):
     conn.commit()
     conn.close()
 
-    return "Updated"
+    # Fetch the updated row
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM data WHERE id=?", (id,))
+    updated_row = cursor.fetchone()
+    conn.close()
+
+    # Create and return the updated table row
+    return Tr(
+        *[
+            Td(str(updated_row[i]), cls=f"col-{getColumnClass(str(updated_row[i]))}")
+            if i == 0
+            else Td(
+                Textarea(
+                    str(updated_row[i]),
+                    name=f"{columns[i]}_{updated_row[0]}",
+                    cls=f"textarea-{getColumnClass(str(updated_row[i]))}",
+                ),
+                cls=f"col-{getColumnClass(str(updated_row[i]))}",
+            )
+            for i in range(len(columns))
+        ]
+        + [
+            Td(
+                Button(
+                    "Update",
+                    hx_post=f"/update/{updated_row[0]}",
+                    hx_include="closest tr",
+                    hx_target="closest tr",
+                    cls="update-btn",
+                ),
+                Button(
+                    "Delete",
+                    hx_delete=f"/delete/{updated_row[0]}",
+                    hx_target="#data-table",
+                    cls="delete-btn",
+                ),
+                cls="action-buttons",
+            )
+        ]
+    )
 
 
 @rt("/delete/{id}", methods=["DELETE"])

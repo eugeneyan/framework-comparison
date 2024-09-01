@@ -1,0 +1,38 @@
+.col-narrow {
+    width: 5%;
+    min-width: 5em;
+    max-width: 10em;
+}
+
+.col-medium {
+    width: 20%;
+    max-width: 20%;
+}
+
+.col-wide {
+    width: 70%;
+    max-width: 70%;
+}
+
+.col-wide textarea,
+.col-medium textarea,
+.col-narrow textarea {
+    width: 100%;
+    height: 10em;
+    padding: 5px;
+    box-sizing: border-box;
+    background: transparent;
+    resize: vertical;
+    overflow-y: auto;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
