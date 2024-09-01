@@ -1,14 +1,18 @@
-import io
+import csv
 import sqlite3
 
-import pandas as pd
 from fasthtml.common import *
 
 app, rt = fast_app()
 
-# Initialize SQLite database
-conn = sqlite3.connect("database.db", check_same_thread=False)
-cursor = conn.cursor()
+
+# Database setup
+def init_db():
+    conn = sqlite3.connect("database.db")
+    conn.close()
+
+
+init_db()
 
 
 @rt("/")
@@ -23,66 +27,109 @@ def index():
         hx_swap="innerHTML",
         enctype="multipart/form-data",
     )
-    data_table = Div(id="data-table")
+
+    # Check if there's data in the database
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='data'")
+    table_exists = cursor.fetchone() is not None
+
+    if table_exists:
+        cursor.execute("SELECT COUNT(*) FROM data")
+        row_count = cursor.fetchone()[0]
+        if row_count > 0:
+            initial_table = get_data()
+        else:
+            initial_table = P("No data available. Please upload a CSV file.")
+    else:
+        initial_table = P("No data available. Please upload a CSV file.")
+
+    conn.close()
+
+    data_table = Div(initial_table, id="data-table")
+
     return Title("CSV Upload and Database Viewer"), Main(
         H1("CSV Upload and Database Viewer"), add, data_table, cls="container"
     )
 
 
 @rt("/upload")
-async def upload(csv_file: UploadFile):
+async def upload_csv(csv_file: UploadFile):
     contents = await csv_file.read()
-    stream = io.StringIO(contents.decode("UTF8"), newline=None)
-    df = pd.read_csv(stream)
+    decoded_content = contents.decode("utf-8").splitlines()
+    csv_reader = csv.DictReader(decoded_content)
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    # Get column names from the CSV
+    columns = csv_reader.fieldnames
+
+    if not columns:
+        return P("Error: CSV file is empty or has no headers")
 
     # Create table based on CSV columns
-    columns = [f"{col} TEXT" for col in df.columns]
     create_table_sql = f"""CREATE TABLE IF NOT EXISTS data (
         {', '.join([f'{col} TEXT' for col in columns])}
     )"""
     cursor.execute(create_table_sql)
 
     # Insert data
-    placeholders = ", ".join(["?" for _ in df.columns])
-    insert_sql = f"INSERT INTO data ({', '.join(df.columns)}) VALUES ({placeholders})"
-    cursor.executemany(insert_sql, df.values.tolist())
+    placeholders = ", ".join(["?" for _ in columns])
+    insert_sql = f"INSERT INTO data ({', '.join(columns)}) VALUES ({placeholders})"
+
+    for row in csv_reader:
+        cursor.execute(insert_sql, [row[col] for col in columns])
+
     conn.commit()
+    conn.close()
 
-    return get_table()
+    return get_data()
 
 
-@rt("/get-table")
-def get_table():
-    df = pd.read_sql_query("SELECT * FROM data", conn)
+@rt("/data")
+def get_data():
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    # Get column names
+    cursor.execute("PRAGMA table_info(data)")
+    columns = [column[1] for column in cursor.fetchall()]
+
+    # Get data
+    cursor.execute("SELECT * FROM data")
+    data = cursor.fetchall()
+
+    conn.close()
+
     return Table(
-        Thead(Tr([Th(col) for col in df.columns])),
+        Thead(Tr([Th(col) for col in columns])),
         Tbody(
             [
                 Tr(
                     [
-                        Td(row["id"]),
+                        Td(row[0]),  # Assuming the first column is the ID
                         *[
                             Td(
                                 Input(
-                                    value=row[col],
-                                    name=f"{col}_{row['id']}",
-                                    hx_post=f"/update/{row['id']}",
+                                    value=row[i],
+                                    name=f"{columns[i]}_{row[0]}",
+                                    hx_post=f"/update/{row[0]}",
                                     hx_trigger="change",
                                 )
                             )
-                            for col in df.columns
-                            if col != "id"
+                            for i in range(1, len(columns))
                         ],
                         Td(
                             Button(
                                 "Delete",
-                                hx_delete=f"/delete/{row['id']}",
+                                hx_delete=f"/delete/{row[0]}",
                                 hx_target="#data-table",
                             )
                         ),
                     ]
                 )
-                for _, row in df.iterrows()
+                for row in data
             ]
         ),
     )
@@ -90,23 +137,29 @@ def get_table():
 
 @rt("/update/<int:id>", methods=["POST"])
 def update(id):
-    df = pd.read_sql_query("SELECT * FROM csv_data LIMIT 1", conn)
-    columns = [col for col in df.columns if col != "id"]
-    values = [request.form[f"{col}_{id}"] for col in columns]
-    update_sql = (
-        f"UPDATE csv_data SET {', '.join([f'{col}=?' for col in columns])} WHERE id=?"
-    )
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    # Get column names
+    cursor.execute("PRAGMA table_info(data)")
+    columns = [column[1] for column in cursor.fetchall()]
+
+    values = [request.form[f"{col}_{id}"] for col in columns if col != "id"]
+    update_sql = f"UPDATE data SET {', '.join([f'{col}=?' for col in columns if col != 'id'])} WHERE id=?"
     cursor.execute(update_sql, (*values, id))
     conn.commit()
+    conn.close()
     return "Updated"
 
 
 @rt("/delete/<int:id>", methods=["DELETE"])
 def delete(id):
-    cursor.execute("DELETE FROM csv_data WHERE id=?", (id,))
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM data WHERE id=?", (id,))
     conn.commit()
-    return get_table()
+    conn.close()
+    return get_data()
 
 
-serve()
 serve()
