@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 
-export default function FileUpload() {
+interface FileUploadProps {
+  onFileUploaded: () => void;
+}
+
+export default function FileUpload({ onFileUploaded }: FileUploadProps) {
   const [file, setFile] = useState<File | null>(null);
 
   const handleFileUpload = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -19,7 +23,7 @@ export default function FileUpload() {
       });
       if (response.ok) {
         alert('File uploaded successfully');
-        // Trigger data refresh in parent component
+        onFileUploaded(); // Call this function to trigger a refresh
       } else {
         alert('File upload failed');
       }

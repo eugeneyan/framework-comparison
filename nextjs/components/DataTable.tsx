@@ -61,7 +61,8 @@ export default function DataTable() {
 
   if (!Array.isArray(data) || data.length === 0) return <p>No data available</p>;
 
-  const columns = Object.keys(data[0]).filter((col) => col !== 'id');
+  // Include 'id' in the columns
+  const columns = Object.keys(data[0]);
 
   return (
     <table className="w-full border-collapse border border-gray-300 mb-4">
@@ -82,7 +83,7 @@ export default function DataTable() {
               <td
                 key={`${row.id}-${col}`}
                 className="border border-gray-300 p-2"
-                onClick={() => setEditingCell({ rowId: row.id, column: col })}
+                onClick={() => col !== 'id' && setEditingCell({ rowId: row.id, column: col })}
               >
                 {editingCell?.rowId === row.id && editingCell?.column === col ? (
                   <input
