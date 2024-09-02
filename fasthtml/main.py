@@ -2,9 +2,10 @@ import csv
 import io
 import sqlite3
 
+from logger import get_logger
+
 from fastapi.responses import StreamingResponse
 from fasthtml.common import *
-from logger import get_logger
 
 app, rt = fast_app()
 logger = get_logger("fasthtml", "INFO")
@@ -278,4 +279,5 @@ def download_csv():
     return response
 
 
+serve()
 serve()
