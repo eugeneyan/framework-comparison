@@ -15,9 +15,11 @@ export default function Home() {
   return (
     <main className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">CSV Data Manager</h1>
-      <FileUpload onFileUploaded={handleFileUploaded} />
+      <div className="flex items-center justify-between mb-4">
+        <FileUpload onFileUploaded={handleFileUploaded} />
+        <DownloadButton />
+      </div>
       <DataTable key={refreshKey} />
-      <DownloadButton />
     </main>
   );
 }

@@ -23,7 +23,7 @@ export default function FileUpload({ onFileUploaded }: FileUploadProps) {
       });
       if (response.ok) {
         alert('File uploaded successfully');
-        onFileUploaded(); // Call this function to trigger a refresh
+        onFileUploaded();
       } else {
         alert('File upload failed');
       }
@@ -34,12 +34,12 @@ export default function FileUpload({ onFileUploaded }: FileUploadProps) {
   };
 
   return (
-    <form onSubmit={handleFileUpload} className="mb-4">
+    <form onSubmit={handleFileUpload} className="flex items-center">
       <input
         type="file"
         accept=".csv"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
-        className="mb-2"
+        className="mr-2"
       />
       <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
         Upload CSV

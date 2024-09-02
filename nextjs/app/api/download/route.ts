@@ -4,7 +4,7 @@ import { stringify } from 'csv-stringify/sync';
 
 export async function GET() {
   try {
-    const data = db.prepare('SELECT * FROM csv_data').all();
+    const data = db.prepare('SELECT * FROM data').all();
     const csv = stringify(data, { header: true });
 
     return new NextResponse(csv, {
