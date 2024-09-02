@@ -1,3 +1,7 @@
+"""
+uv run uvicorn main:app --reload
+"""
+
 import csv
 import io
 import sqlite3

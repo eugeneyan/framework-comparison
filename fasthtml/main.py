@@ -1,3 +1,7 @@
+"""
+uv run uvicorn main:app --reload
+"""
+
 import csv
 import io
 import sqlite3
@@ -279,5 +283,4 @@ def download_csv():
     return response
 
 
-serve()
 serve()
