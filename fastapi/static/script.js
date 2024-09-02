@@ -94,16 +94,6 @@ async function loadData() {
     }
 }
 
-// Helper function to escape HTML special characters
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
 // Update the updateRow function to use data-id
 async function updateRow(button) {
     const id = button.getAttribute('data-id');

@@ -2,12 +2,13 @@ import csv
 import io
 import sqlite3
 
+from logger import get_logger
+
 from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.exceptions import HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from logger import get_logger
 
 app = FastAPI()
 logger = get_logger("fastapi", "INFO")
@@ -25,6 +26,7 @@ def init_db():
 init_db()
 
 
+# Remove the following function as it's not necessary for the core functionality
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
