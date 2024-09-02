@@ -34,8 +34,10 @@ export default function DataTable() {
         body: JSON.stringify({ id: rowId, column, value }),
       });
       if (response.ok) {
-        // Fetch the updated data immediately after a successful update
-        await fetchData();
+        // Update local state immediately
+        setData(prevData => prevData.map(row => 
+          row.id === rowId ? { ...row, [column]: value } : row
+        ));
       } else {
         const errorData = await response.json();
         alert(`Failed to update data: ${errorData.error}`);
@@ -84,18 +86,23 @@ export default function DataTable() {
             {columns.map((col) => (
               <td
                 key={`${row.id}-${col}`}
-                className="border border-gray-300 p-2"
+                className="border border-gray-300 p-2 relative"
                 onClick={() => col !== 'id' && setEditingCell({ rowId: row.id, column: col })}
               >
                 {editingCell?.rowId === row.id && editingCell?.column === col ? (
-                  <input
-                    type="text"
+                  <textarea
                     defaultValue={row[col]}
                     onBlur={(e) => handleCellEdit(row.id, col, e.target.value)}
                     autoFocus
+                    className="w-full h-full absolute top-0 left-0 border-none bg-white p-2 focus:outline-none resize-none overflow-hidden"
+                    style={{ minHeight: '100%' }}
+                    onInput={(e) => {
+                      e.currentTarget.style.height = 'auto';
+                      e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
+                    }}
                   />
                 ) : (
-                  row[col]
+                  <span className="block w-full h-full whitespace-pre-wrap">{row[col]}</span>
                 )}
               </td>
             ))}
