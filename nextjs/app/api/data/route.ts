@@ -15,9 +15,26 @@ export async function PUT(req: NextRequest) {
   const { id, column, value } = await req.json();
 
   try {
-    db.prepare(`UPDATE data SET ${column} = ? WHERE id = ?`).run(value, id);
+    // Start a transaction
+    db.prepare('BEGIN').run();
+
+    // Update the data
+    const updateStmt = db.prepare(`UPDATE data SET ${column} = ? WHERE id = ?`);
+    const result = updateStmt.run(value, id);
+
+    if (result.changes === 0) {
+      // If no rows were updated, rollback and return an error
+      db.prepare('ROLLBACK').run();
+      return NextResponse.json({ error: 'No rows updated' }, { status: 404 });
+    }
+
+    // Commit the transaction
+    db.prepare('COMMIT').run();
+
     return NextResponse.json({ message: 'Data updated successfully' });
   } catch (error) {
+    // Rollback the transaction in case of an error
+    db.prepare('ROLLBACK').run();
     console.error('Error updating data:', error);
     return NextResponse.json({ error: 'Error updating data' }, { status: 500 });
   }

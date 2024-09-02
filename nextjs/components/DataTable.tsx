@@ -34,9 +34,11 @@ export default function DataTable() {
         body: JSON.stringify({ id: rowId, column, value }),
       });
       if (response.ok) {
-        fetchData();
+        // Fetch the updated data immediately after a successful update
+        await fetchData();
       } else {
-        alert('Failed to update data');
+        const errorData = await response.json();
+        alert(`Failed to update data: ${errorData.error}`);
       }
     } catch (error) {
       console.error('Error updating data:', error);
