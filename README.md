@@ -26,7 +26,7 @@ uv sync  # Install dependencies
 # Next.js
 npm install -g pnpm
 cd nextjs
-pnpm i
+pnpm install  # Install dependencies
 
 # Svelte
 cd svelte
