@@ -3,9 +3,7 @@ import { stringify } from 'csv-stringify/sync';
 
 export async function GET() {
   try {
-    const data = query('SELECT * FROM csv_data');
-    const csv = stringify(data, { header: true });
-
+    const csv = stringify(query('SELECT * FROM csv_data'), { header: true });
     return new Response(csv, {
       headers: {
         'Content-Type': 'text/csv',
@@ -13,8 +11,7 @@ export async function GET() {
       }
     });
   } catch (error) {
-    // If the table doesn't exist yet, return an empty CSV
-    if (error.message.includes('no such table')) {
+    if (error instanceof Error && error.message.includes('no such table')) {
       return new Response('', {
         headers: {
           'Content-Type': 'text/csv',
