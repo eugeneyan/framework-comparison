@@ -15,3 +15,21 @@ The app will enable users to:
 To keep things simple for this comparison, we'll:
 - Have a single table for the data
 - Not have features for table deletes or overwrites once the single table has been initialized
+
+## Setup
+```
+# Python
+# Install uv: https://docs.astral.sh/uv/getting-started/installation/
+uv init  # Create a new python project
+uv sync  # Install dependencies
+
+# Next.js
+npm install -g pnpm
+cd nextjs
+pnpm i
+
+# Svelte
+cd svelte
+pnpm install
+```
+

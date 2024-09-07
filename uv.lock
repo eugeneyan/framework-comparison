@@ -114,6 +114,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "fastlite" },
     { name = "jinja2" },
     { name = "pandas" },
     { name = "python-fasthtml" },
@@ -124,6 +125,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.112.2" },
+    { name = "fastlite", specifier = ">=0.0.10" },
     { name = "jinja2", specifier = ">=3.1.4" },
     { name = "pandas", specifier = ">=2.2.2" },
     { name = "python-fasthtml", specifier = ">=0.5.1" },
