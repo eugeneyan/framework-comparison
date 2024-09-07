@@ -21,21 +21,38 @@
     <CsvUpload on:dataUpdated={handleDataUpdate} />
     <a href="/api/download" download="table_data.csv" class="download-btn">Download CSV</a>
   </div>
-  <Table {tableData} on:dataUpdated={handleDataUpdate} />
+  <div class="table-container">
+    <Table {tableData} on:dataUpdated={handleDataUpdate} />
+  </div>
 </main>
 
 <style>
-  main {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+  :global(body, html) {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
   }
+
+  main {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
   .actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
   }
+
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
   .download-btn {
     background-color: #4CAF50;
     border: none;

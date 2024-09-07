@@ -5,20 +5,13 @@ export async function PUT({ params, request }) {
   const { id } = params;
   const updatedRow = await request.json();
   
-  const data = query('SELECT data FROM csv_data');
-  if (data.length === 0) {
-    return json({ error: 'No data found' }, { status: 404 });
-  }
-
-  const records = JSON.parse(data[0].data);
-  const index = records.findIndex((row: any) => row.id.toString() === id);
+  const columns = Object.keys(updatedRow);
+  const values = Object.values(updatedRow);
   
-  if (index === -1) {
-    return json({ error: 'Row not found' }, { status: 404 });
-  }
-
-  records[index] = { ...records[index], ...updatedRow };
-  run('UPDATE csv_data SET data = ?', [JSON.stringify(records)]);
+  const setClause = columns.map(col => `${col} = ?`).join(', ');
+  const sql = `UPDATE csv_data SET ${setClause} WHERE id = ?`;
+  
+  run(sql, [...values, id]);
 
   return json({ success: true });
 }
@@ -26,19 +19,7 @@ export async function PUT({ params, request }) {
 export async function DELETE({ params }) {
   const { id } = params;
   
-  const data = query('SELECT data FROM csv_data');
-  if (data.length === 0) {
-    return json({ error: 'No data found' }, { status: 404 });
-  }
-
-  const records = JSON.parse(data[0].data);
-  const filteredRecords = records.filter((row: any) => row.id.toString() !== id);
-
-  if (filteredRecords.length === records.length) {
-    return json({ error: 'Row not found' }, { status: 404 });
-  }
-
-  run('UPDATE csv_data SET data = ?', [JSON.stringify(filteredRecords)]);
+  run('DELETE FROM csv_data WHERE id = ?', [id]);
 
   return json({ success: true });
 }
