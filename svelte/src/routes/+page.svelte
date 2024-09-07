@@ -16,7 +16,7 @@
 </script>
 
 <main>
-  <h1>CSV Data Manager</h1>
+  <h1>Look at Your Data</h1>
   <div class="actions">
     <CsvUpload on:dataUpdated={handleDataUpdate} />
     <a href="/api/download" download="table_data.csv" class="download-btn">Download CSV</a>
