@@ -97,15 +97,15 @@ wheels = [
 
 [[package]]
 name = "fastlite"
-version = "0.0.10"
+version = "0.0.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastcore" },
     { name = "sqlite-minutils" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/dd/5c/c3abd6e7833015a06e58b7a097e7f7c5ba5397c72bca53a2f4331f6d8197/fastlite-0.0.10.tar.gz", hash = "sha256:90f111dc30338b1bbc7461b767b23e207356227d968eac60b0e06d5242f7b593", size = 19387 }
+sdist = { url = "https://files.pythonhosted.org/packages/48/98/b0024670a63cfdea1561e665edee4f542fc3165eea85850ba68123fe6de7/fastlite-0.0.11.tar.gz", hash = "sha256:3ba61eeb510b14952c24ddc69947bff79324524d0e47dfb91ff1d8fe1492adfe", size = 20300 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/69/e4/88b21b443e91f6e80fe8ef98b7d585fa74e3613e44c8bbd936e0f80414de/fastlite-0.0.10-py3-none-any.whl", hash = "sha256:3a4a510fb411e39cda98111d32421838b02c3a0ccaa1c543393c22ddd9f4553d", size = 15607 },
+    { url = "https://files.pythonhosted.org/packages/e1/6b/25e0abd3f300a20e39cca2e31ca105b8b66dc6758d09e67ac97dd27b6fcb/fastlite-0.0.11-py3-none-any.whl", hash = "sha256:66984ab849ae41d85d205fba3e057c24e967525184f9ecbd7536761f5551392d", size = 16195 },
 ]
 
 [[package]]
@@ -125,7 +125,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.112.2" },
-    { name = "fastlite", specifier = ">=0.0.10" },
+    { name = "fastlite", specifier = "==0.0.11" },
     { name = "jinja2", specifier = ">=3.1.4" },
     { name = "pandas", specifier = ">=2.2.2" },
     { name = "python-fasthtml", specifier = ">=0.5.1" },
