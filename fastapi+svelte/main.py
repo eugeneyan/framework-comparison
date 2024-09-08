@@ -71,14 +71,6 @@ async def get_data():
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
 
-        # Check if the 'data' table exists
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='data'"
-        )
-        if cursor.fetchone() is None:
-            # Table doesn't exist, return an empty result
-            return {"headers": [], "data": []}
-
         cursor.execute("SELECT * FROM data")
         data = cursor.fetchall()
 
@@ -88,6 +80,9 @@ async def get_data():
         headers = [description[0] for description in cursor.description]
         conn.close()
         return {"headers": headers, "data": data}
+    except sqlite3.OperationalError:
+        # Table doesn't exist, return an empty result
+        return {"headers": [], "data": []}
     except Exception as e:
         logger.error(f"Error fetching data: {str(e)}")
         return {"headers": [], "data": [], "error": str(e)}
@@ -140,9 +135,3 @@ async def download_csv():
         media_type="text/csv",
         filename="data.csv",
     )
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)

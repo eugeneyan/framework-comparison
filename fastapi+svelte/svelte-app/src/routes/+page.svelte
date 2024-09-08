@@ -85,11 +85,16 @@
 </script>
 
 <main>
-  <h1>CSV Data Manager</h1>
+  <h1>Look at Your Data</h1>
   
-  <div>
-    <input type="file" accept=".csv" bind:files={file} />
-    <button on:click={handleUpload}>Upload CSV</button>
+  <div class="csv-actions">
+    <div class="upload-section">
+      <input type="file" accept=".csv" bind:files={file} />
+      <button on:click={handleUpload}>Upload CSV</button>
+    </div>
+    {#if tableData.length > 0}
+      <button on:click={downloadCSV}>Download CSV</button>
+    {/if}
   </div>
 
   {#if message}
@@ -115,6 +120,7 @@
                   <div
                     class="cell-content"
                     role="textbox"
+                    tabindex="0"
                     contenteditable={editingCell && editingCell.rowIndex === rowIndex && editingCell.colIndex === colIndex}
                     on:click={() => startEditing(rowIndex, colIndex, cell)}
                     on:input={(e) => editedValue = e.target.textContent}
@@ -133,10 +139,8 @@
         </tbody>
       </table>
     </div>
-
-    <button on:click={downloadCSV}>Download CSV</button>
   {:else}
-    <p>No data available. Please upload a CSV file.</p>
+    <br>
   {/if}
 </main>
 
@@ -145,6 +149,22 @@
     max-width: 100%;
     margin: 0 auto;
     padding: 20px;
+  }
+
+  .csv-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .upload-section {
+    display: flex;
+    align-items: center;
+  }
+
+  .upload-section input[type="file"] {
+    margin-right: 10px;
   }
 
   .table-container {
@@ -183,6 +203,15 @@
   }
 
   button {
-    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #0056b3;
   }
 </style>
