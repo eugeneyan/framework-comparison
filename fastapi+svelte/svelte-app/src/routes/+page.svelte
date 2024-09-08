@@ -97,37 +97,42 @@
   {/if}
 
   {#if tableData.length > 0}
-    <table>
-      <thead>
-        <tr>
-          {#each headers as header}
-            <th>{header}</th>
-          {/each}
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each tableData as row, rowIndex}
+    <div class="table-container">
+      <table>
+        <thead>
           <tr>
-            {#each row as cell, colIndex}
-              <td>
-                <textarea
-                  value={cell}
-                  readonly={!(editingCell && editingCell.rowIndex === rowIndex && editingCell.colIndex === colIndex)}
-                  on:click={() => startEditing(rowIndex, colIndex, cell)}
-                  on:input={(e) => editedValue = e.target.value}
-                  on:keydown={(e) => handleKeyDown(e, row[0])} 
-                  on:blur={() => saveEdit(row[0])}
-                />
-              </td>
+            {#each headers as header}
+              <th>{header}</th>
             {/each}
-            <td>
-              <button on:click={() => handleDelete(row[0])}>Delete</button> <!-- Assuming the first column is the ID -->
-            </td>
+            <th>Actions</th>
           </tr>
-        {/each}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {#each tableData as row, rowIndex}
+            <tr>
+              {#each row as cell, colIndex}
+                <td>
+                  <div
+                    class="cell-content"
+                    role="textbox"
+                    contenteditable={editingCell && editingCell.rowIndex === rowIndex && editingCell.colIndex === colIndex}
+                    on:click={() => startEditing(rowIndex, colIndex, cell)}
+                    on:input={(e) => editedValue = e.target.textContent}
+                    on:keydown={(e) => handleKeyDown(e, row[0])}
+                    on:blur={() => saveEdit(row[0])}
+                  >
+                    {cell}
+                  </div>
+                </td>
+              {/each}
+              <td>
+                <button on:click={() => handleDelete(row[0])}>Delete</button>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
 
     <button on:click={downloadCSV}>Download CSV</button>
   {:else}
@@ -137,38 +142,44 @@
 
 <style>
   main {
-    max-width: 800px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 20px;
+  }
+
+  .table-container {
+    overflow-x: auto;
   }
 
   table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    table-layout: auto;
   }
 
   th, td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
+    vertical-align: top;
   }
 
   th {
     background-color: #f2f2f2;
   }
 
-  textarea {
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    border: none;
-    resize: vertical;
-    min-height: 30px;
+  .cell-content {
+    min-width: 100px;
+    max-width: none;
+    width: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
   }
 
-  textarea:not([readonly]) {
+  [contenteditable="true"] {
     outline: 2px solid #007bff;
+    padding: 2px;
   }
 
   button {
