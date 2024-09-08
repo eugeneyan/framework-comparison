@@ -4,11 +4,11 @@ My current approach of building apps is based on fastapi + jinja/html + css + so
 - Pros: Reliable stack that I'm familiar with
 - Cons: Outdated?
 
-Recently, I've been thinking about building apps in js (next.js?) and trying fastHTML, and ran a poll [here](https://x.com/eugeneyan/status/1828447283811402006). This is an extension of the poll, where I'll build the same app thrice using all three approaches, to get a sense of what suits me best.
+Recently, I've been thinking about building apps in typescript/fastHTML and ran a poll [here](https://x.com/eugeneyan/status/1828447283811402006). This is an extension of the poll, where I'll build the same app five times using  FastAPI + HTML, FastHTML, Next.js, and Svelte. The intent was to understand which suited me best, both in terms of ease of development, learning, and fun.
 
 The app will enable users to:
 - `upload` a csv file to initialize a sqlite table
-- `visualize` the table via the browser
+- `view` the table via the browser
 - `update` a row of the sqlite database
 - `delete` a row of the sqlite database
 - `download` the table of the sqlite table

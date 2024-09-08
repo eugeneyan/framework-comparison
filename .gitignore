@@ -164,6 +164,8 @@ cython_debug/
 # JS
 **/node_modules
 **/.next
+**/next-env.d.ts
+**/.svelte-kit
 
 # Other files
 .DS_Store
