@@ -1,84 +1,87 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { fetchData, uploadCSV, updateRow, deleteRow } from '$lib/api';
 
   let file: File | null = null;
-  let tableData: any[] = [];
+  let tableData: any[][] = [];
   let headers: string[] = [];
   let message: string = '';
 
-  async function uploadCSV() {
+  let editingCell: { rowIndex: number, colIndex: number } | null = null;
+  let editedValue: string = '';
+
+  onMount(loadData);
+
+  async function loadData() {
+    try {
+      const result = await fetchData();
+      console.log('Received data:', result);
+      headers = result.headers;
+      tableData = result.data;
+      if (result.error) {
+        message = `Error fetching data: ${result.error}`;
+      } else if (headers.length === 0 && tableData.length === 0) {
+        message = 'No data available. Please upload a CSV file.';
+      } else {
+        message = ''; // Clear any previous error messages
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      message = 'Error fetching data. Please try again.';
+      headers = [];
+      tableData = [];
+    }
+  }
+
+  async function handleUpload() {
     if (!file) {
       message = 'Please select a file';
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file[0]); // Change this line
-
     try {
-      const response = await fetch('http://localhost:8000/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Unknown error occurred');
-      }
-
-      const result = await response.json();
+      const result = await uploadCSV(file[0]);
       message = result.message;
-      await fetchData();
+      await loadData();
     } catch (error) {
       message = `Error uploading file: ${error.message}`;
       console.error('Upload error:', error);
     }
   }
 
-  async function fetchData() {
-    try {
-      const response = await fetch('http://localhost:8000/data');
-      const result = await response.json();
-      headers = result.headers;
-      tableData = result.data;
-    } catch (error) {
-      message = 'Error fetching data';
+  function startEditing(rowIndex: number, colIndex: number, value: string) {
+    editingCell = { rowIndex, colIndex };
+    editedValue = value;
+  }
+
+  async function saveEdit(id: number) {
+    if (!editingCell) return;
+    const { rowIndex, colIndex } = editingCell;
+    const updatedData = [...tableData[rowIndex]];
+    updatedData[colIndex] = editedValue;
+    await updateRow(id, { [headers[colIndex]]: editedValue });
+    tableData[rowIndex] = updatedData;
+    editingCell = null;
+    await loadData();
+  }
+
+  function handleKeyDown(event: KeyboardEvent, id: number) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      saveEdit(id);
+    } else if (event.key === 'Escape') {
+      editingCell = null;
     }
   }
 
-  async function updateRow(rowId: number, updatedData: any) {
-    try {
-      const response = await fetch(`http://localhost:8000/update/${rowId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData),
-      });
-      const result = await response.json();
-      message = result.message;
-      await fetchData();
-    } catch (error) {
-      message = 'Error updating row';
-    }
-  }
-
-  async function deleteRow(rowId: number) {
-    try {
-      const response = await fetch(`http://localhost:8000/delete/${rowId}`, {
-        method: 'DELETE',
-      });
-      const result = await response.json();
-      message = result.message;
-      await fetchData();
-    } catch (error) {
-      message = 'Error deleting row';
-    }
+  async function handleDelete(id: number) {
+    await deleteRow(id);
+    await loadData();
   }
 
   function downloadCSV() {
     window.location.href = 'http://localhost:8000/download';
   }
-
-  onMount(fetchData);
 </script>
 
 <main>
@@ -86,7 +89,7 @@
   
   <div>
     <input type="file" accept=".csv" bind:files={file} />
-    <button on:click={uploadCSV}>Upload CSV</button>
+    <button on:click={handleUpload}>Upload CSV</button>
   </div>
 
   {#if message}
@@ -104,19 +107,22 @@
         </tr>
       </thead>
       <tbody>
-        {#each tableData as row, i}
+        {#each tableData as row, rowIndex}
           <tr>
-            {#each row as cell, j}
+            {#each row as cell, colIndex}
               <td>
-                <input
-                  type="text"
+                <textarea
                   value={cell}
-                  on:change={(e) => updateRow(i + 1, { [headers[j]]: e.target.value })}
+                  readonly={!(editingCell && editingCell.rowIndex === rowIndex && editingCell.colIndex === colIndex)}
+                  on:click={() => startEditing(rowIndex, colIndex, cell)}
+                  on:input={(e) => editedValue = e.target.value}
+                  on:keydown={(e) => handleKeyDown(e, row[0])} 
+                  on:blur={() => saveEdit(row[0])}
                 />
               </td>
             {/each}
             <td>
-              <button on:click={() => deleteRow(i + 1)}>Delete</button>
+              <button on:click={() => handleDelete(row[0])}>Delete</button> <!-- Assuming the first column is the ID -->
             </td>
           </tr>
         {/each}
@@ -152,9 +158,17 @@
     background-color: #f2f2f2;
   }
 
-  input[type="text"] {
+  textarea {
     width: 100%;
+    height: 100%;
     box-sizing: border-box;
+    border: none;
+    resize: vertical;
+    min-height: 30px;
+  }
+
+  textarea:not([readonly]) {
+    outline: 2px solid #007bff;
   }
 
   button {
