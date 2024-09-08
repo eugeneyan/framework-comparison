@@ -33,30 +33,17 @@ async def upload_csv(file: UploadFile = File(...)):
         csv_reader = csv.reader(io.StringIO(content.decode("utf-8")))
         headers = next(csv_reader)
 
-        logger.info(f"Received CSV with headers: {headers}")
+        with sqlite3.connect(DB_NAME) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DROP TABLE IF EXISTS data")
+            cursor.execute(f"CREATE TABLE data ({', '.join(headers)})")
 
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-
-        # Drop existing table if it exists
-        cursor.execute("DROP TABLE IF EXISTS data")
-        logger.info("Dropped existing 'data' table")
-
-        # Create table
-        cursor.execute(f"CREATE TABLE data ({', '.join(headers)})")
-        logger.info(f"Table created with headers: {headers}")
-
-        # Insert data
-        for row in csv_reader:
-            if len(row) != len(headers):
-                logger.warning(f"Skipping row with incorrect number of fields: {row}")
-                continue
-            cursor.execute(
-                f"INSERT INTO data VALUES ({', '.join(['?' for _ in row])})", row
-            )
-
-        conn.commit()
-        conn.close()
+            for row in csv_reader:
+                if len(row) == len(headers):
+                    cursor.execute(
+                        f"INSERT INTO data VALUES ({', '.join(['?' for _ in row])})",
+                        row,
+                    )
 
         logger.info("CSV uploaded and database created successfully")
         return {"message": "CSV uploaded and database created successfully"}
@@ -68,20 +55,13 @@ async def upload_csv(file: UploadFile = File(...)):
 @app.get("/data")
 async def get_data():
     try:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT * FROM data")
-        data = cursor.fetchall()
-
-        if not data:
-            return {"headers": [], "data": []}
-
-        headers = [description[0] for description in cursor.description]
-        conn.close()
+        with sqlite3.connect(DB_NAME) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM data")
+            data = cursor.fetchall()
+            headers = [description[0] for description in cursor.description]
         return {"headers": headers, "data": data}
     except sqlite3.OperationalError:
-        # Table doesn't exist, return an empty result
         return {"headers": [], "data": []}
     except Exception as e:
         logger.error(f"Error fetching data: {str(e)}")
