@@ -1,7 +1,3 @@
-"""
-uv run uvicorn main:app --reload
-"""
-
 import csv
 import io
 import sqlite3
@@ -40,7 +36,7 @@ def index():
         Group(inp, upload_button, download_button),
         hx_post="/upload",
         hx_target="#data-table",
-        hx_swap="innerHTML",
+        hx_swap="outerHTML",
         enctype="multipart/form-data",
     )
 
@@ -66,7 +62,7 @@ def index():
         Link(rel="stylesheet", href="/static/style.css"),
         H1("Look at Your Data"),
         add,
-        Div(data_table, cls="table-container", style="width: 100%;"),
+        Div(data_table, id="data-table", cls="table-container", style="width: 100%;"),
         cls="container-fluid",
     )
 
