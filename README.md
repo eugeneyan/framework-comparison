@@ -8,6 +8,7 @@ Recently, I've been thinking about building apps in js (next.js?) and trying fas
 
 The app will enable users to:
 - `upload` a csv file to initialize a sqlite table
+- `visualize` the table via the browser
 - `update` a row of the sqlite database
 - `delete` a row of the sqlite database
 - `download` the table of the sqlite table
@@ -18,18 +19,61 @@ To keep things simple for this comparison, we'll:
 
 ## Setup
 ```
-# Python
+# Install Python + FastAPI + FastHTML
 # Install uv: https://docs.astral.sh/uv/getting-started/installation/
 uv init  # Create a new python project
 uv sync  # Install dependencies
 
+# Install Next.js + Svelte
+npm install -g pnpm  # Install pnpm: https://pnpm.io 
+
 # Next.js
-npm install -g pnpm
 cd nextjs
 pnpm install  # Install dependencies
 
 # Svelte
 cd svelte
-pnpm install
+pnpm install  # Install dependencies
 ```
 
+## Running the apps
+
+### FastAPI + Jinja + CSS + JS
+```
+cd fastapi
+uv run uvicorn main:app --reload
+# Go to http://localhost:8000/
+```
+
+### FastHTML
+```
+cd fasthtml
+uv run python main.py
+# Go to http://localhost:5001
+```
+
+### Next.js
+```
+cd nextjs
+pnpm run dev
+# Go to http://localhost:3000/
+```
+
+### Svelte
+```
+cd svelte
+pnpm run dev
+# Go to http://localhost:5173/
+```
+
+### FastAPI + Svelte
+```
+cd fastapi+svelte
+uv run uvicorn main:app --reload
+
+# Open another terminal
+cd svelte-app
+pnpm run dev
+
+# Go to http://localhost:5173/
+```
