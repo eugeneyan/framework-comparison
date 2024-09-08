@@ -17,6 +17,8 @@ To keep things simple for this comparison, we'll:
 - Have a single table for the data
 - Not have features for table deletes or overwrites once the single table has been initialized
 
+> Also see the detailed writeup and some thoughts [here](https://eugeneyan.com/writing/web-frameworks/).
+
 ## Setup
 ```
 # Install Python + FastAPI + FastHTML
